@@ -19,6 +19,9 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
             <li class="nav-item m-4">
+                <button type="button" class="btn btn-primary" onclick="itemlist()" data-bs-toggle="modal" data-bs-target="#listItemModal">Listar pratos</button>
+            </li>
+            <li class="nav-item m-4">
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addItemModal" data-whatever="@mdo">Adicionar prato</button>
             </li>
             <li class="nav-item m-4">
@@ -166,6 +169,23 @@
     </div>
     </div>
 
+    <div class="modal fade" id="listItemModal" tabindex="-1" aria-labelledby="listItemModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="listItemModalLabel">Lista de Pratos</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+            <ul class="list-group" id="listContainer"></ul>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        </div>
+        </div>
+    </div>
+    </div>
+
 
     <script>
         restaurante = new Array()
@@ -226,10 +246,10 @@
 
             if (item_busca){
                 document.getElementById("resultNomePrato").innerText = item_busca.nome
-                document.getElementById("resultValorPrato").innerText = item_busca.valor
+                document.getElementById("resultValorPrato").innerText = "R$ " + item_busca.valor
             }else{
-                document.getElementById("resultNomePrato") = "Não encontrado"
-                document.getElementById("resultValorPrato") = "Não encontrado"
+                document.getElementById("resultNomePrato").innerText = "Não encontrado"
+                document.getElementById("resultValorPrato").innerText = "N/A"
             }
             const feedbackModal = new bootstrap.Modal(document.getElementById('feedbackModal'));
             feedbackModal.show();
@@ -243,14 +263,27 @@
             document.getElementById("resultValorPrato").value = "";
         }
 
-        function itemlist(){
-            lista_restaurante = ""
-            for(i = 0; i < restaurante.length; i++){
-                item = restaurante[i]
-                lista_restaurante = lista_restaurante + item.nome + " - " + item.valor + "\n\n"
+
+        function itemlist() {
+            const listContainer = document.getElementById("listContainer");
+            listContainer.innerHTML = ""; 
+
+            if (restaurante.length === 0) {
+                const emptyItem = document.createElement("li");
+                emptyItem.className = "list-group-item text-center text-muted";
+                emptyItem.innerText = "Nenhum prato cadastrado.";
+                listContainer.appendChild(emptyItem);
+                return;
             }
-            alert(lista_restaurante)
+
+            restaurante.forEach(item => {
+                const listItem = document.createElement("li");
+                listItem.className = "list-group-item";
+                listItem.innerText = `${item.nome} - R$ ${item.valor}`;
+                listContainer.appendChild(listItem);
+            });
         }
+
 
     </script>
 
