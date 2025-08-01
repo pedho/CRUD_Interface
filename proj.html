@@ -188,7 +188,8 @@
 
 
     <script>
-        restaurante = new Array()
+        const url = "https://688cc002cd9d22dda5ce5a4b.mockapi.io/api/v1/pratos"
+        
 
         class Item{
             constructor(nome, valor){
@@ -200,8 +201,16 @@
         function additem(){
             item_nome = document.getElementById("nomePrato").value;
             item_valor = document.getElementById("valorPrato").value;
-            item = new Item(item_nome, item_valor)
-            restaurante.push(item)
+
+            fetch(url, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    nome: item_nome,
+                    valor: item_valor
+                })
+            }).then(res => res.json())
+            .then(() =>itemlist())
 
             document.getElementById("nomePrato").value = ""
             document.getElementById("valorPrato").value = ""
@@ -209,17 +218,28 @@
 
         function edititem(){
             item_nome_busca = document.getElementById("nomePratoEdit").value;
-
-            var item_busca = restaurante.find(function(object){
-                return object.nome === item_nome_busca
-            })
-
             item_nome = document.getElementById("novoNomePrato").value;
             item_valor = document.getElementById("novoValorPrato").value;
-            new_item = new Item(item_nome, item_valor)
 
-            pos = restaurante.indexOf(item_busca)
-            restaurante[pos] = new_item
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    var item_busca = data.find(function(object){ return object.nome === item_nome_busca})
+
+                    if(!item_busca){
+                        alert("Prato não encontrado")
+                        return;
+                    }
+
+                    fetch(`${url}/${item_busca.id}`, {
+                        method: "PUT",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({
+                            nome: item_nome,
+                            valor: item_valor
+                        })
+                    }).then(() => itemlist())
+                })
 
             document.getElementById("nomePratoEdit").value = "";
             document.getElementById("novoNomePrato").value = "";
@@ -229,28 +249,45 @@
 
         function removeitem(){
             item_nome_busca = document.getElementById("nomePratoDelete").value;
-            var item_busca = restaurante.find(function(object){
-                return object.nome === item_nome_busca
-            })
-            restaurante = restaurante.filter(item => item !== item_busca)
+
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    var item_busca = data.find(function(object){return object.nome === item_nome_busca})
+
+                    if(!item_busca){
+                        alert("Prato não encontrado")
+                        return;
+                    }
+
+                    fetch(`${url}/${item_busca.id}`, {
+                        method: "DELETE"
+                    })
+                    .then(() => itemlist())
+                })
 
             document.getElementById("nomePratoDelete").value = "";
         }
 
         function searchitem(){
             item_nome = document.getElementById("nomePratoSearch").value
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    var item_busca = data.find(function(object){ return object.nome === item_nome})
 
-            var item_busca = restaurante.find(function(object){
-                return object.nome === item_nome
-            })
+                    if(!item_busca){
+                        alert("Prato não encontrado")
+                        document.getElementById("resultNomePrato").innerText = "Não encontrado"
+                        document.getElementById("resultValorPrato").innerText = "N/A"
+                        return;
+                    } else {
+                        document.getElementById("resultNomePrato").innerText = item_busca.nome
+                        document.getElementById("resultValorPrato").innerText = "R$ " + item_busca.valor
+                    }
 
-            if (item_busca){
-                document.getElementById("resultNomePrato").innerText = item_busca.nome
-                document.getElementById("resultValorPrato").innerText = "R$ " + item_busca.valor
-            }else{
-                document.getElementById("resultNomePrato").innerText = "Não encontrado"
-                document.getElementById("resultValorPrato").innerText = "N/A"
-            }
+                })
+            
             const feedbackModal = new bootstrap.Modal(document.getElementById('feedbackModal'));
             feedbackModal.show();
 
@@ -268,20 +305,24 @@
             const listContainer = document.getElementById("listContainer");
             listContainer.innerHTML = ""; 
 
-            if (restaurante.length === 0) {
-                const emptyItem = document.createElement("li");
-                emptyItem.className = "list-group-item text-center text-muted";
-                emptyItem.innerText = "Nenhum prato cadastrado.";
-                listContainer.appendChild(emptyItem);
-                return;
-            }
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.length === 0) {
+                        const emptyItem = document.createElement("li");
+                        emptyItem.className = "list-group-item text-center text-muted";
+                        emptyItem.innerText = "Nenhum prato cadastrado.";
+                        listContainer.appendChild(emptyItem);
+                        return;
+                    }
 
-            restaurante.forEach(item => {
-                const listItem = document.createElement("li");
-                listItem.className = "list-group-item";
-                listItem.innerText = `${item.nome} - R$ ${item.valor}`;
-                listContainer.appendChild(listItem);
-            });
+                    data.forEach(item => {
+                        const listItem = document.createElement("li");
+                        listItem.className = "list-group-item";
+                        listItem.innerText = `${item.nome} - R$ ${item.valor}`;
+                        listContainer.appendChild(listItem);
+                    });
+                })
         }
 
 
